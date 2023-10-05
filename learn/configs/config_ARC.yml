@@ -1,0 +1,139 @@
+#path:
+data_dir: "datasets"
+output_dir: "./output/ARC/27"
+train_yaml: "ARC/0/train_32frames.yaml"
+val_yaml: "ARC/0/val_32frames.yaml"
+
+#data:
+img_res: 224
+max_num_frames: 32
+# 是否讲标签或caption放到内存中
+on_memory: false
+
+#
+max_seq_length: 50
+patch_size: 32
+# 是否添加转录音频
+#use_asr: false
+#use_swap_cap: false # 是否将两部分调转justification，action
+## 是否添加object标签
+add_od_labels: false
+max_seq_a_length: 25
+
+use_sep_cap: true # 是否将caption分为两部分
+predict_caption: 2 # 0 只预测observed; 1 只预测unobserved; 2 同时预测observed 和 unobserved
+
+#control:
+do_train: true
+do_eval: false
+do_test: false
+
+seed: 0
+device: "cuda"
+local_rank: 0
+
+mixed_precision_method: deepspeed
+zero_opt_stage: 1
+deepspeed_fp16: true
+amp_opt_level: 0
+max_grad_norm: 1
+# deepspeed 打印日志间隔 *10
+logging_steps: 20
+
+
+#train:
+evaluate_during_training: true
+
+per_gpu_train_batch_size: 4
+per_gpu_eval_batch_size: 16
+num_train_epochs: 60
+limited_samples: -1
+num_workers: 10
+
+gradient_accumulation_steps: 4
+backbone_coef_lr: 0.05
+learning_rate: 0.001
+weight_decay: 0.2
+adam_epsilon: 0.00000001
+scheduler: 'warmup_linear'
+warmup_ratio: 0.1
+
+max_masked_tokens: 20
+loss_sparse_w: 0.1
+
+# val
+#max_gen_length: 25
+num_beams: 1 # 预测时搜索宽度
+num_keep_best: 1
+output_hidden_states: false
+temperature: 1
+top_k: 0
+top_p: 1
+repetition_penalty: 1
+length_penalty: 1
+num_return_sequences: 1
+
+#model:
+model_video_3D: "VidSwin"
+vidswin_size: "base"
+kinetics: "600"
+pretrained_2d: 0
+pretrained_checkpoint: ""
+grid_feat: true
+use_checkpoint: true
+freeze_backbone: false
+
+model_video_2D: "clip"
+model_version: "ViT-B/32"
+
+model_mutimodel: "bert"
+model_name_or_path: "models/captioning/bert-base-uncased/"
+config_name: ""
+tokenizer_name: ""
+do_lower_case: true
+drop_out: 0.1
+tie_weights: false
+freeze_embedding: false
+label_smoothing: 0
+drop_worst_ratio: 0
+drop_worst_after: 0
+# bert模型发生变动的情况下，是否导入预训练权重
+load_partial_weights: false
+# bert可能发生变动的地方，-1为不变动
+img_feature_dim: 768
+num_hidden_layers: -1
+hidden_size: -1
+num_attention_heads: -1
+intermediate_size: -1
+
+scst: false
+
+text_mask_type: 'random'
+mask_prob: 0.5
+random_mask_prob: 0
+# 必须等于(args.max_num_frames/2)*(int(args.img_res)/32)*(int(args.img_res)/32)
+max_img_seq_length: 196
+learn_mask_enabled: true
+attn_mask_type: 'learn_vid_att'
+sparse_mask_soft2hard: false
+
+# cc: current_caption; fc: future_caption; fv: future_video; cv: current_video
+# cc_cc, cc_fc, cc_fv, cc_cv
+# fc_cc, fc_fc, fc_fv, fc_cv
+# fv_cc, fv_fc, fv_fv, fv_cv
+# cv_cc, cv_fc, cv_fv, cv_cv
+
+attn_mask_compose:
+  cc_fc: 0
+  cc_fv: 0
+  cc_cv: 1
+  fc_cc: 1
+  fc_fv: 1
+  fc_cv: 1
+  fv_cc: 0
+  fv_fc: 0
+  fv_cv: 1
+
+
+t: 0.8
+lamda: 1.0
